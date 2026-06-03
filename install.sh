@@ -18,8 +18,9 @@
 #     5. Создаёт ~/.claude/settings.json — права, статуслайн, хуки, ultrathink (если нет)
 #     6. Копирует statusline-command.sh + hooks/ (если нет)
 #     7. Копирует skills/ — close, handoff, write (по одному, не затирая)
+#     8. Создаёт ~/.claude/.mcp.json — playwright + google-sheets/docs → <cwd> (если нет)
 #   SHELL:
-#     8. Добавляет alias <имя-репо>='cd <cwd> && claude' в ~/.zshrc или ~/.bashrc
+#     9. Добавляет alias <имя-репо>='cd <cwd> && claude' в ~/.zshrc или ~/.bashrc
 #
 # Защита от перезаписи: если файл уже есть — пропускаем, выводим warning. Ничего не теряется.
 
@@ -170,7 +171,21 @@ for sdir in "${TMP}/skills/"*/; do
 done
 ok "скиллы: создано ${screated}, пропущено ${sskipped} (уже было)"
 
-# --- 10. shell alias ---
+# --- 10. MCP-серверы (~/.claude/.mcp.json) ---
+echo ""
+log "MCP-серверы ~/.claude/.mcp.json"
+if [ ! -f "${GLOBAL_DIR}/.mcp.json" ]; then
+    sed "s|__REPO__|${TARGET}|g" "${TMP}/claude-home/.mcp.json.template" > "${GLOBAL_DIR}/.mcp.json"
+    ok "создан ${GLOBAL_DIR}/.mcp.json (playwright + google-sheets/docs → ${TARGET}/integrations/...)"
+    if [ ! -f "${TARGET}/integrations/google-sheets/app/server.py" ]; then
+        log "    note: google-sheets/docs указывают на ${TARGET}/integrations/... — этих серверов в репо нет."
+        log "          поставь их venv + credentials.json или убери эти записи. playwright работает сразу."
+    fi
+else
+    skip "${GLOBAL_DIR}/.mcp.json — образец в ${TMP}/claude-home/.mcp.json.template"
+fi
+
+# --- 11. shell alias ---
 echo ""
 log "Shell-алиас для быстрого запуска"
 ALIAS_NAME=$(basename "${TARGET}")
@@ -194,7 +209,7 @@ else
     ok "добавлен '${ALIAS_NAME}' в ${RC} → перезапусти терминал или 'source ${RC}'"
 fi
 
-# --- 11. cleanup ---
+# --- 12. cleanup ---
 rm -rf "${TMP}"
 
 # --- финал ---
@@ -206,5 +221,6 @@ echo "  1. source ~/.zshrc (или новый терминал) → команд
 echo "  2. Открой ${TARGET}/CLAUDE.md → заполни карту проекта (папки, кодовые слова)"
 echo "  3. Открой ${GLOBAL_DIR}/CLAUDE.md → поправь язык/тон под себя"
 echo "  4. settings.json: если ultrathink-на-каждый-промпт или model opus[1m] не нужны — убери их в ${GLOBAL_DIR}/settings.json"
-echo "  5. Философия слоёв — ${REPO_URL}/blob/main/ARCHITECTURE.md"
+echo "  5. MCP: playwright готов сразу; google-sheets/docs требуют venv+credentials в ${TARGET}/integrations/ (или убери из ~/.claude/.mcp.json)"
+echo "  6. Философия слоёв — ${REPO_URL}/blob/main/ARCHITECTURE.md"
 echo ""

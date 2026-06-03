@@ -105,6 +105,12 @@ mkdir -p <repo>/memory
 **6.4 Скиллы** (`~/.claude/skills/`) — по одной папке, не затирая существующие:
 - `close`, `handoff`, `write`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
 
+**6.5 MCP-серверы** (`~/.claude/.mcp.json`):
+- Если файла нет — взять `claude-home/.mcp.json.template`, заменить `__REPO__` на абсолютный путь `<repo>`, записать в `~/.claude/.mcp.json`.
+- `playwright` работает сразу (через `npx`). `google-sheets`/`google-docs` указывают на `<repo>/integrations/.../server.py` — нужны их venv + `credentials.json`. Если этих серверов в репо нет — предупредить пользователя, что записи можно удалить или донастроить.
+- Если `~/.claude/.mcp.json` уже есть — НЕ затирать, показать образец.
+- **sqlite и другие credential-bound MCP** (если были у пользователя) добавляются через `claude mcp add` вручную — их в пэке нет, путь к БД и доступы машинно-зависимы.
+
 ---
 
 ## Шаг 7. Shell-алиас быстрого запуска

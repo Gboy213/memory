@@ -113,9 +113,10 @@ Skills хранят повторяющиеся workflow'ы, не сами пра
 - `~/.claude/settings.json` — права (allow/deny), нижняя панель (statusLine), хуки (предупреждение перед push, syntax-check после правок), ultrathink на каждый промпт по умолчанию.
 - `~/.claude/statusline-command.sh` — рисует панель: модель, папка, ctx%, лимиты 5h/7d.
 - `~/.claude/hooks/*.sh` — скрипты хуков.
+- `~/.claude/.mcp.json` — MCP-серверы: `playwright` (готов сразу) + `google-sheets`/`google-docs` (указывают на серверы внутри репо, нужны venv + credentials). Генерируется из `claude-home/.mcp.json.template` подстановкой пути репо.
 - Shell-алиас `<имя-репо>` в `~/.zshrc`/`~/.bashrc` → `cd <repo> && claude`.
 
-Источники в пэке: `claude-home/` и `skills/`. Установщик не затирает существующие настройки — если `settings.json` уже есть, показывает образец и предлагает слить вручную.
+Источники в пэке: `claude-home/` и `skills/`. Установщик не затирает существующие настройки — если `settings.json` или `.mcp.json` уже есть, показывает образец и предлагает слить вручную. Credential-bound MCP (sqlite с путём к БД и т.п.) в пэк не входят — добавляются через `claude mcp add` на конкретной машине.
 
 ## Переход между сессиями (handoff)
 

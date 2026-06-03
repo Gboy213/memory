@@ -78,10 +78,13 @@ memory/
 └── claude-home/       ← среда Claude Code (копируется в ~/.claude/)
     ├── settings.json          ← права allow/deny, статуслайн, хуки, ultrathink
     ├── statusline-command.sh  ← нижняя панель: модель, папка, ctx%, лимиты
-    └── hooks/                 ← warn-before-push, post-edit-syntax-check
+    ├── hooks/                 ← warn-before-push, post-edit-syntax-check
+    └── .mcp.json.template     ← MCP-серверы (playwright + google-sheets/docs)
 ```
 
-Установщик настраивает не только контент в репо, но и **среду на машине**: пишет `~/.claude/settings.json` (права + статуслайн + хуки + ultrathink-по-умолчанию), кладёт скиллы в `~/.claude/skills/`, и добавляет shell-алиас `<имя-репо>` (`cd <repo> && claude`) в `~/.zshrc`/`~/.bashrc`. Существующие файлы не затираются.
+Установщик настраивает не только контент в репо, но и **среду на машине**: пишет `~/.claude/settings.json` (права + статуслайн + хуки + ultrathink-по-умолчанию), `~/.claude/.mcp.json` (MCP-серверы), кладёт скиллы в `~/.claude/skills/`, и добавляет shell-алиас `<имя-репо>` (`cd <repo> && claude`) в `~/.zshrc`/`~/.bashrc`. Существующие файлы не затираются.
+
+> MCP: `playwright` работает из коробки. `google-sheets`/`google-docs` указывают на серверы внутри твоего репо (`integrations/.../server.py`) — им нужны venv и `credentials.json`. Нет таких — убери записи, остальное работает.
 
 ## Идея в двух абзацах
 

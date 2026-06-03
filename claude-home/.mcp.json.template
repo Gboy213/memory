@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "google-sheets": {
+      "command": "__REPO__/integrations/google-sheets/.venv/bin/python",
+      "args": ["__REPO__/integrations/google-sheets/app/server.py"]
+    },
+    "google-docs": {
+      "command": "__REPO__/integrations/google-docs/.venv/bin/python",
+      "args": ["__REPO__/integrations/google-docs/app/server.py"]
+    }
+  }
+}
