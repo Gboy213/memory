@@ -9,11 +9,17 @@
 #   bash install.sh
 #
 # Что делает:
-#   1. Клонит репо в /tmp/memory-install
-#   2. Создаёт ~/.claude/CLAUDE.md (если нет)
-#   3. Создаёт <cwd>/CLAUDE.md (если нет)
-#   4. Копирует rules/*.md в <cwd>/rules/ (не затирая существующие)
-#   5. Создаёт <cwd>/MEMORY.md и <cwd>/memory/README.md (если нет)
+#   ПРОЕКТ (<cwd>):
+#     1. Создаёт <cwd>/CLAUDE.md (если нет)
+#     2. Копирует rules/*.md в <cwd>/rules/ (не затирая существующие)
+#     3. Создаёт <cwd>/MEMORY.md и <cwd>/memory/README.md (если нет)
+#   ГЛОБАЛЬНЫЙ ХАРНЕС (~/.claude/):
+#     4. Создаёт ~/.claude/CLAUDE.md (если нет)
+#     5. Создаёт ~/.claude/settings.json — права, статуслайн, хуки, ultrathink (если нет)
+#     6. Копирует statusline-command.sh + hooks/ (если нет)
+#     7. Копирует skills/ — close, handoff, write (по одному, не затирая)
+#   SHELL:
+#     8. Добавляет alias <имя-репо>='cd <cwd> && claude' в ~/.zshrc или ~/.bashrc
 #
 # Защита от перезаписи: если файл уже есть — пропускаем, выводим warning. Ничего не теряется.
 
@@ -106,7 +112,89 @@ else
     skip "${TARGET}/memory/README.md"
 fi
 
-# --- 6. cleanup ---
+# --- 6. global settings.json (права + статуслайн + хуки + ultrathink) ---
+echo ""
+log "Среда Claude Code ~/.claude/settings.json"
+if [ ! -f "${GLOBAL_DIR}/settings.json" ]; then
+    cp "${TMP}/claude-home/settings.json" "${GLOBAL_DIR}/settings.json"
+    ok "создан ${GLOBAL_DIR}/settings.json (allow/deny, statusLine, ultrathink-хук)"
+else
+    skip "${GLOBAL_DIR}/settings.json — слей вручную, образец в ${TMP}/claude-home/settings.json"
+fi
+
+# --- 7. statusline-command.sh ---
+echo ""
+log "Статуслайн (нижняя панель)"
+if [ ! -f "${GLOBAL_DIR}/statusline-command.sh" ]; then
+    cp "${TMP}/claude-home/statusline-command.sh" "${GLOBAL_DIR}/statusline-command.sh"
+    chmod +x "${GLOBAL_DIR}/statusline-command.sh"
+    ok "создан ${GLOBAL_DIR}/statusline-command.sh"
+else
+    skip "${GLOBAL_DIR}/statusline-command.sh"
+fi
+
+# --- 8. hooks ---
+echo ""
+log "Хуки ${GLOBAL_DIR}/hooks/"
+mkdir -p "${GLOBAL_DIR}/hooks"
+hcreated=0
+hskipped=0
+for src in "${TMP}/claude-home/hooks/"*.sh; do
+    name=$(basename "${src}")
+    dst="${GLOBAL_DIR}/hooks/${name}"
+    if [ ! -f "${dst}" ]; then
+        cp "${src}" "${dst}"
+        chmod +x "${dst}"
+        hcreated=$((hcreated + 1))
+    else
+        hskipped=$((hskipped + 1))
+    fi
+done
+ok "хуки: создано ${hcreated}, пропущено ${hskipped} (уже было)"
+
+# --- 9. skills (close / handoff / write) ---
+echo ""
+log "Скиллы ${GLOBAL_DIR}/skills/"
+mkdir -p "${GLOBAL_DIR}/skills"
+screated=0
+sskipped=0
+for sdir in "${TMP}/skills/"*/; do
+    sname=$(basename "${sdir}")
+    dst="${GLOBAL_DIR}/skills/${sname}"
+    if [ ! -d "${dst}" ]; then
+        cp -r "${sdir}" "${dst}"
+        screated=$((screated + 1))
+    else
+        sskipped=$((sskipped + 1))
+    fi
+done
+ok "скиллы: создано ${screated}, пропущено ${sskipped} (уже было)"
+
+# --- 10. shell alias ---
+echo ""
+log "Shell-алиас для быстрого запуска"
+ALIAS_NAME=$(basename "${TARGET}")
+ALIAS_LINE="alias ${ALIAS_NAME}='cd ${TARGET} && claude'"
+RC=""
+case "${SHELL:-}" in
+    *zsh)  RC="${HOME}/.zshrc" ;;
+    *bash) RC="${HOME}/.bashrc" ;;
+    *)
+        if [ -f "${HOME}/.zshrc" ]; then RC="${HOME}/.zshrc"
+        elif [ -f "${HOME}/.bashrc" ]; then RC="${HOME}/.bashrc"
+        fi
+        ;;
+esac
+if [ -z "${RC}" ]; then
+    skip "не нашёл ~/.zshrc или ~/.bashrc — добавь вручную: ${ALIAS_LINE}"
+elif grep -q "^alias ${ALIAS_NAME}=" "${RC}" 2>/dev/null; then
+    skip "алиас '${ALIAS_NAME}' уже есть в ${RC}"
+else
+    printf "\n# claude-code: быстрый запуск проекта\n%s\n" "${ALIAS_LINE}" >> "${RC}"
+    ok "добавлен '${ALIAS_NAME}' в ${RC} → перезапусти терминал или 'source ${RC}'"
+fi
+
+# --- 11. cleanup ---
 rm -rf "${TMP}"
 
 # --- финал ---
@@ -114,8 +202,9 @@ echo ""
 echo "✅ Установлено."
 echo ""
 echo "Что дальше:"
-echo "  1. Открой ${TARGET}/CLAUDE.md → заполни карту проекта (папки, кодовые слова)"
-echo "  2. Открой ${GLOBAL_DIR}/CLAUDE.md → поправь язык/тон под себя"
-echo "  3. По мере работы — обновляй current-focus.md, складывай заметки в memory/"
-echo "  4. Философия слоёв — ${REPO_URL}/blob/main/ARCHITECTURE.md"
+echo "  1. source ~/.zshrc (или новый терминал) → команда '${ALIAS_NAME}' запустит Claude в этом проекте"
+echo "  2. Открой ${TARGET}/CLAUDE.md → заполни карту проекта (папки, кодовые слова)"
+echo "  3. Открой ${GLOBAL_DIR}/CLAUDE.md → поправь язык/тон под себя"
+echo "  4. settings.json: если ultrathink-на-каждый-промпт или model opus[1m] не нужны — убери их в ${GLOBAL_DIR}/settings.json"
+echo "  5. Философия слоёв — ${REPO_URL}/blob/main/ARCHITECTURE.md"
 echo ""
