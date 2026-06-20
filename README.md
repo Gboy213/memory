@@ -9,6 +9,8 @@
 
 ## Установка
 
+> **Машина новая, с нуля?** Если на маке ещё нет Homebrew / Node / самого Claude Code — сначала [`SETUP.md`](SETUP.md): развернёт среду до момента, когда можно ставить пэк. Если Claude Code уже работает — переходи сразу к установке ниже.
+
 ### Способ 1 — через Claude Code (рекомендуется)
 
 В рабочем git-репозитории открой Claude Code и скажи:
@@ -39,7 +41,8 @@ curl -fsSL https://raw.githubusercontent.com/Gboy213/memory/main/install.sh | ba
 ```
 memory/
 ├── README.md          ← этот файл
-├── INSTALL.md         ← инструкция установки для Claude-агента
+├── SETUP.md           ← разворот среды с нуля на новой машине (brew → node → claude code)
+├── INSTALL.md         ← инструкция установки пэка для Claude-агента
 ├── install.sh         ← bash-установщик
 ├── ARCHITECTURE.md    ← как устроены слои контекста (читай вторым)
 ├── LICENSE            ← MIT
