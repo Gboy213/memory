@@ -1,4 +1,4 @@
-﻿# memory — установщик базовой среды Claude Code для Windows (PowerShell 5.1+).
+# memory — установщик базовой среды Claude Code для Windows (PowerShell 5.1+).
 # Аналог install.sh для мака. Запуск одной командой (PowerShell от администратора):
 #
 #   irm https://raw.githubusercontent.com/Gboy213/memory/main/install.ps1 | iex
@@ -11,7 +11,7 @@
 #      scripts\station-setup.ps1 — запускает его (донастройка машины из самого репо)
 #
 # Секретов в скрипте нет. Доступ к приватным репо даёт только твой GitHub-аккаунт.
-# Файл в UTF-8 с BOM: без BOM PS 5.1 читает кириллицу как ANSI.
+# Файл в UTF-8 БЕЗ BOM: точка входа — irm | iex, а BOM ломает iex (проверено); irm сам декодирует UTF-8 по charset.
 
 $ErrorActionPreference = 'Continue'
 
