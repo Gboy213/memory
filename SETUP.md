@@ -95,6 +95,20 @@ command -v python3>/dev/null || brew install python    # если в проек�
 
 ---
 
+## Windows
+
+На Windows обе фазы заменяет один скрипт (PowerShell от администратора):
+
+```powershell
+irm https://raw.githubusercontent.com/Gboy213/memory/main/install.ps1 | iex
+```
+
+Ставит через winget: Git, Node.js LTS, GitHub CLI, Chrome, затем Claude Code
+(официальный установщик), логинит в GitHub и по желанию клонирует рабочий репо
+в `C:\Claude\<имя>`. Руками остаётся только логин в сам Claude Code.
+
+---
+
 ## Итог
 
 После Фазы 0 + Фазы 1 на машине: Homebrew, Node, Claude Code, git (+ опц. gh/python), а пэк правил и среда `~/.claude/` разложены по местам. Дальше — обычная работа.

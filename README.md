@@ -28,6 +28,18 @@ curl -fsSL https://raw.githubusercontent.com/Gboy213/memory/main/install.sh | ba
 
 То же самое, но через скрипт. Защита от перезаписи такая же — твои существующие файлы не пострадают.
 
+### Способ 3 — Windows one-liner (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/Gboy213/memory/main/install.ps1 | iex
+```
+
+Windows-скрипт ставит базу с нуля (git, Node, GitHub CLI, Chrome, Claude Code через winget),
+логинит в GitHub и по желанию клонирует твой рабочий репо; если в том репо есть
+`scripts/station-setup.ps1` — запускает его (донастройка машины из самого репо).
+Запускать в PowerShell от администратора. Пэк правил (`rules/`, `~/.claude/`) он пока
+не раскладывает — это делается Способом 1 уже внутри Claude.
+
 ### Что после установки
 
 1. Открой `CLAUDE.md` в корне репо — это карта твоего проекта. Заполни папки, ключевые слова, правила.
@@ -44,6 +56,7 @@ memory/
 ├── SETUP.md           ← разворот среды с нуля на новой машине (brew → node → claude code)
 ├── INSTALL.md         ← инструкция установки пэка для Claude-агента
 ├── install.sh         ← bash-установщик
+├── install.ps1        ← Windows-установщик базы (PowerShell, winget)
 ├── ARCHITECTURE.md    ← как устроены слои контекста (читай вторым)
 ├── LICENSE            ← MIT
 │
