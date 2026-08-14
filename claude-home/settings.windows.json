@@ -55,7 +55,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -lc '~/.claude/hooks/warn-before-push.sh'",
+            "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc ~/.claude/hooks/warn-before-push.sh",
             "timeout": 5
           }
         ]
@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -lc '~/.claude/hooks/post-edit-syntax-check.sh'",
+            "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc ~/.claude/hooks/post-edit-syntax-check.sh",
             "timeout": 5
           }
         ]
@@ -76,7 +76,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash -lc '~/.claude/statusline-command.sh'"
+    "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" -lc ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "document-skills@anthropic-agent-skills": true
