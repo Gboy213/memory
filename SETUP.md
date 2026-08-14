@@ -105,7 +105,7 @@ irm https://raw.githubusercontent.com/Gboy213/memory/main/install.ps1 | iex
 
 Ставит через winget: Git, Node.js LTS, GitHub CLI, Chrome, затем Claude Code
 (официальный установщик), логинит в GitHub и по желанию клонирует рабочий репо
-в `C:\Claude\<имя>`. Руками остаётся только логин в сам Claude Code.
+в `C:\213\<имя>`. Руками остаётся только логин в сам Claude Code.
 
 ---
 

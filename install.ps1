@@ -7,7 +7,7 @@
 #   1. Ставит базу через winget: Git, Node.js LTS, GitHub CLI, Chrome (что уже есть — пропускает)
 #   2. Ставит Claude Code (официальный установщик claude.ai)
 #   3. Логинит в GitHub (gh auth login — вход через браузер)
-#   4. По желанию: клонирует рабочий репо в C:\Claude\<имя> и, если в нём есть
+#   4. По желанию: клонирует рабочий репо в C:\213\<имя> и, если в нём есть
 #      scripts\station-setup.ps1 — запускает его (донастройка машины из самого репо)
 #
 # Секретов в скрипте нет. Доступ к приватным репо даёт только твой GitHub-аккаунт.
@@ -79,11 +79,11 @@ Write-Host ""
 $slug = Read-Host "Клонировать рабочий репо? Введи owner/repo (Enter — пропустить)"
 if ($slug) {
   $name = ($slug -split '/')[-1]
-  $dest = "C:\Claude\$name"
+  $dest = "C:\213\$name"
   if (Test-Path "$dest\.git") {
     Write-Host "  ~ $dest уже склонирован" -ForegroundColor Yellow
   } else {
-    New-Item -ItemType Directory -Force -Path 'C:\Claude' | Out-Null
+    New-Item -ItemType Directory -Force -Path 'C:\213' | Out-Null
     gh repo clone $slug $dest
   }
   $setup = "$dest\scripts\station-setup.ps1"
