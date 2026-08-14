@@ -34,11 +34,14 @@ curl -fsSL https://raw.githubusercontent.com/Gboy213/memory/main/install.sh | ba
 irm https://raw.githubusercontent.com/Gboy213/memory/main/install.ps1 | iex
 ```
 
-Windows-скрипт ставит базу с нуля (git, Node, GitHub CLI, Chrome, Claude Code через winget),
-логинит в GitHub и по желанию клонирует твой рабочий репо; если в том репо есть
-`scripts/station-setup.ps1` — запускает его (донастройка машины из самого репо).
-Запускать в PowerShell от администратора. Пэк правил (`rules/`, `~/.claude/`) он пока
-не раскладывает — это делается Способом 1 уже внутри Claude.
+Windows-скрипт (v2) ставит базу с нуля (git, Node, GitHub CLI, Chrome, jq), разрешает
+запуск скриптов (ExecutionPolicy), ставит Claude Code (нативный установщик, при
+регион-блоке — fallback на npm), раскладывает глобальный слой `~/.claude`
+(CLAUDE.md-правила, settings.json в Windows-варианте, статуслайн, хуки, скиллы —
+не затирая твоё), логинит в GitHub и по желанию клонирует рабочий репо в
+`C:\213\<имя>`; если в том репо есть `scripts/station-setup.ps1` — запускает его.
+Запускать в PowerShell от администратора. Проектный слой (rules/ в твоём репо,
+проектный CLAUDE.md) — по-прежнему Способом 1 внутри Claude.
 
 ### Что после установки
 
