@@ -3,7 +3,7 @@
 
 Имя берётся из ~/.claude/canary-name (одна строка, например «Женя»). Файла нет —
 хук молчит. Пропажа имени в начале ответа = маркер деградации контекста /
-начала галлюцинаций: предупреждение уходит в stderr, ответ НЕ блокируется.
+начала галлюцинаций: предупреждение — JSON systemMessage в stdout, ответ НЕ блокируется.
 Правило для агента — в ~/.claude/CLAUDE.md § Канарейка контекста.
 """
 import json
@@ -21,9 +21,10 @@ def canary_name():
 
 def extract_text(data):
     """Текст последнего ответа: сперва из stdin, иначе из транскрипта."""
-    msg = data.get("assistant_message")
-    if isinstance(msg, str) and msg.strip():
-        return msg
+    for key in ("last_assistant_message", "assistant_message"):
+        msg = data.get(key)
+        if isinstance(msg, str) and msg.strip():
+            return msg
     path = data.get("transcript_path")
     if not path:
         return ""
@@ -69,11 +70,12 @@ def main():
     if not text.strip():
         sys.exit(0)
     if not starts_with_name(text, name):
-        sys.stderr.write(
-            f"⚠️  КАНАРЕЙКА: ответ не начался с «{name}» — возможна деградация "
+        # systemMessage в stdout — единственный канал, который Claude Code показывает
+        # пользователю при exit 0 (stderr успешного хука не выводится)
+        print(json.dumps({"systemMessage": (
+            f"⚠️ КАНАРЕЙКА: ответ не начался с «{name}» — возможна деградация "
             "контекста или галлюцинации. Перепроверь факты, при сомнении "
-            "перезапусти сессию (/compact или новая).\n"
-        )
+            "перезапусти сессию (/compact или новая).")}, ensure_ascii=False))
     sys.exit(0)
 
 

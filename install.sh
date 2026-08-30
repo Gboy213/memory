@@ -197,6 +197,7 @@ if command -v codex >/dev/null 2>&1; then
     if [ ! -f "${HOME}/.codex/hooks.json" ]; then
         sed "s|__HOME__|${HOME}|g" "${TMP}/codex-home/hooks.json" > "${HOME}/.codex/hooks.json"
         ok "создан ~/.codex/hooks.json (warn-before-push, syntax-check, drift-markers)"
+        log "    ВАЖНО: Codex пропускает новые хуки, пока их не доверить: открой codex → /hooks → проверь три определения → trust"
     else
         skip "~/.codex/hooks.json — образец в ${TMP}/codex-home/hooks.json"
     fi
@@ -211,6 +212,9 @@ else
 fi
 if command -v kimi >/dev/null 2>&1; then
     log "kimi найден: усилие max для refine — см. ${TMP}/kimi-home/config.snippet.toml → ~/.kimi-code/config.toml (руками)"
+fi
+if command -v codex >/dev/null 2>&1; then
+    log "codex: статуслайн (контекст/токены/лимиты) + reasoning xhigh — см. ${TMP}/codex-home/config.snippet.toml → ~/.codex/config.toml (руками, не перезаписывать)"
 fi
 
 # --- 10. MCP-серверы (~/.claude/.mcp.json) ---
