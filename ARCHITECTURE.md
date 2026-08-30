@@ -113,7 +113,7 @@ Skills хранят повторяющиеся workflow'ы, не сами пра
 - `~/.claude/settings.json` — права (allow/deny), нижняя панель (statusLine), хуки (предупреждение перед push, syntax-check после правок, дрифт-метки, канарейка), ultrathink на каждый промпт по умолчанию, полноэкранный TUI.
 - `~/.claude/statusline.js` — рисует панель: модель, папка, ctx-токены и %, лимиты 5ч/7д с таймером сброса, цена сессии (`statusline-command.sh` — запасной bash-вариант).
 - `~/.claude/hooks/*` — скрипты хуков. Два «датчика качества»: `drift-markers.py` собирает метки `#длинно/#вода/#круги` из промтов в `~/.claude/drift-markers.tsv` (недельный зачёт дрейфа), `canary-name-check.py` подсвечивает ответ, который не начался с имени пользователя (`~/.claude/canary-name`) — ранний признак потери контекста.
-- Другие CLI: `codex-home/` (`~/.codex/AGENTS.md`, hooks), `qwen-home/` (`~/.qwen/QWEN.md`), `kimi-home/` (сниппет усилия). Один и тот же набор правил живёт в нейтральных `rules/`, а каждый агент получает свой adapter и не читает чужие.
+- Другие CLI: `codex-home/` (`~/.codex/AGENTS.md`, hooks, `config.snippet.toml` — статуслайн с остатком контекста/лимитами и reasoning xhigh, сливается руками), `qwen-home/` (`~/.qwen/QWEN.md`), `kimi-home/` (сниппет усилия). Один и тот же набор правил живёт в нейтральных `rules/`, а каждый агент получает свой adapter и не читает чужие.
 - `~/.claude/.mcp.json` — MCP-серверы: `playwright` (готов сразу) + `google-sheets`/`google-docs` (указывают на серверы внутри репо, нужны venv + credentials). Генерируется из `claude-home/.mcp.json.template` подстановкой пути репо.
 - Shell-алиас `<имя-репо>` в `~/.zshrc`/`~/.bashrc` → `cd <repo> && claude`.
 

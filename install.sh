@@ -121,7 +121,7 @@ if [ ! -f "${GLOBAL_DIR}/settings.json" ]; then
     cp "${TMP}/claude-home/settings.json" "${GLOBAL_DIR}/settings.json"
     ok "создан ${GLOBAL_DIR}/settings.json (allow/deny, statusLine, ultrathink-хук)"
 else
-    skip "${GLOBAL_DIR}/settings.json — слей вручную, образец в ${TMP}/claude-home/settings.json"
+    skip "${GLOBAL_DIR}/settings.json — слей вручную, образец: ${REPO_URL}/blob/main/claude-home/settings.json"
 fi
 
 # --- 7. statusline-command.sh ---
@@ -199,7 +199,7 @@ if command -v codex >/dev/null 2>&1; then
         ok "создан ~/.codex/hooks.json (warn-before-push, syntax-check, drift-markers)"
         log "    ВАЖНО: Codex пропускает новые хуки, пока их не доверить: открой codex → /hooks → проверь три определения → trust"
     else
-        skip "~/.codex/hooks.json — образец в ${TMP}/codex-home/hooks.json"
+        skip "~/.codex/hooks.json — образец: ${REPO_URL}/blob/main/codex-home/hooks.json"
     fi
 else
     skip "codex не установлен — слой ~/.codex пропущен"
@@ -211,10 +211,10 @@ else
     skip "qwen не установлен — слой ~/.qwen пропущен"
 fi
 if command -v kimi >/dev/null 2>&1; then
-    log "kimi найден: усилие max для refine — см. ${TMP}/kimi-home/config.snippet.toml → ~/.kimi-code/config.toml (руками)"
+    log "kimi найден: усилие max для refine — слей руками в ~/.kimi-code/config.toml строки из ${REPO_URL}/blob/main/kimi-home/config.snippet.toml"
 fi
 if command -v codex >/dev/null 2>&1; then
-    log "codex: статуслайн (контекст/токены/лимиты) + reasoning xhigh — см. ${TMP}/codex-home/config.snippet.toml → ~/.codex/config.toml (руками, не перезаписывать)"
+    log "codex: статуслайн (контекст/токены/лимиты) + reasoning xhigh — слей руками в ~/.codex/config.toml (не перезаписывать) строки из ${REPO_URL}/blob/main/codex-home/config.snippet.toml"
 fi
 
 # --- 10. MCP-серверы (~/.claude/.mcp.json) ---
@@ -228,7 +228,7 @@ if [ ! -f "${GLOBAL_DIR}/.mcp.json" ]; then
         log "          поставь их venv + credentials.json или убери эти записи. playwright работает сразу."
     fi
 else
-    skip "${GLOBAL_DIR}/.mcp.json — образец в ${TMP}/claude-home/.mcp.json.template"
+    skip "${GLOBAL_DIR}/.mcp.json — образец: ${REPO_URL}/blob/main/claude-home/.mcp.json.template"
 fi
 
 # --- 11. shell alias ---

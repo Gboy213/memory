@@ -105,7 +105,7 @@ memory/
 │   ├── hooks/                 ← warn-before-push, post-edit-syntax-check, drift-markers, canary-name-check
 │   └── .mcp.json.template     ← MCP-серверы (playwright + google-sheets/docs)
 │
-├── codex-home/        ← глобальный слой Codex (~/.codex): AGENTS.md, hooks, hooks.json
+├── codex-home/        ← глобальный слой Codex (~/.codex): AGENTS.md, hooks, hooks.json, config.snippet.toml (статуслайн + reasoning xhigh, слить руками)
 ├── qwen-home/         ← глобальный слой Qwen Code (~/.qwen/QWEN.md)
 └── kimi-home/         ← сниппет config.toml для Kimi (усилие max)
 ```
