@@ -89,9 +89,10 @@ memory/
 ├── memory/
 │   └── README.md              ← как работает долгая память между сессиями
 │
-├── skills/            ← триггерные навыки (копируются в ~/.claude/skills/)
+├── skills/            ← триггерные навыки (копируются в ~/.claude/skills/ + ссылка ~/.agents/skills/ для Codex/Kimi/Qwen)
 │   ├── close/                 ← зафиксировать контекст перед закрытием терминала
 │   ├── handoff/               ← промт для продолжения в новой сессии
+│   ├── refine/                ← решение через две другие модели: Optimizer/Auditor → Judge, 2 раунда (Codex/Claude/Kimi/Qwen)
 │   └── write/                 ← редактура текстов (35 правил Ильяхова + AI-маркеры)
 │
 └── claude-home/       ← среда Claude Code (копируется в ~/.claude/)

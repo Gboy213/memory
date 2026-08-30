@@ -122,6 +122,12 @@ if (-not (Test-Path "$pack\claude-home")) {
   }
   Get-ChildItem "$pack\skills" -Directory | ForEach-Object {
     Copy-IfMissing $_.FullName "$g\skills\$($_.Name)" "skill /$($_.Name)"
+    # ~/.agents/skills — общая папка скиллов Codex/Kimi/Qwen (junction не требует прав администратора)
+    $agents = "$env:USERPROFILE\.agents\skills"
+    New-Item -ItemType Directory -Force -Path $agents | Out-Null
+    if (-not (Test-Path "$agents\$($_.Name)")) {
+      New-Item -ItemType Junction -Path "$agents\$($_.Name)" -Target "$g\skills\$($_.Name)" | Out-Null
+    }
   }
 }
 

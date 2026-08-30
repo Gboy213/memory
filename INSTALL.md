@@ -105,7 +105,15 @@ mkdir -p <repo>/memory
 - `warn-before-push.sh`, `post-edit-syntax-check.sh`. `chmod +x` после копирования.
 
 **6.4 Скиллы** (`~/.claude/skills/`) — по одной папке, не затирая существующие:
-- `close`, `handoff`, `write`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
+- `close`, `handoff`, `write`, `refine`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
+- Для каждого — ссылка `~/.agents/skills/<name> → ~/.claude/skills/<name>` (эту папку читают Claude Code, Codex, Kimi и Qwen; `refine` без неё виден только Claude).
+
+**6.4a refine — проверка второй и третьей моделью** (`skills/refine/README.md` — полное описание):
+- Что это: твоё решение прогоняется через две другие модели (одна ищет ошибки или лишнюю сложность, другая судит каждое замечание), два раунда с обменом ролями; ты остаёшься автором. Вызов: `/refine <задача>` в Claude Code, `$refine` в Codex, `/skill:refine` в Kimi.
+- Нужно: кроме твоего CLI ещё **минимум два** из `codex`, `claude`, `kimi`, `qwen` в PATH и залогиненных (подписки, не API-ключи). С одним CLI скрипт откажется стартовать.
+- Проверка: `python3 ~/.agents/skills/refine/refine.py init --host claude --slug test` печатает роли раундов и резерв → удалить созданную папку `.llm-audit/` в текущей директории.
+- Kimi: усилие `max` в `~/.kimi-code/config.toml` (`[thinking] effort = "max"`); модели Kimi/Qwen закреплены в `skills/refine/models.json`.
+- Проверено на macOS. На Windows не тестировалось: `refine.py` зовёт CLI по имени через subprocess — `.cmd`-шимы npm могут не находиться, при первом запуске проверить.
 
 **6.5 MCP-серверы** (`~/.claude/.mcp.json`):
 - Если файла нет — взять `claude-home/.mcp.json.template`, заменить `__REPO__` на абсолютный путь `<repo>`, записать в `~/.claude/.mcp.json`.

@@ -17,7 +17,8 @@
 #     4. Создаёт ~/.claude/CLAUDE.md (если нет)
 #     5. Создаёт ~/.claude/settings.json — права, статуслайн, хуки, ultrathink (если нет)
 #     6. Копирует statusline-command.sh + hooks/ (если нет)
-#     7. Копирует skills/ — close, handoff, write (по одному, не затирая)
+#     7. Копирует skills/ — close, handoff, write, refine (по одному, не затирая)
+#        + ссылка ~/.agents/skills/<name> → общая папка скиллов Codex/Kimi/Qwen (refine зовут все четыре CLI)
 #     8. Создаёт ~/.claude/.mcp.json — playwright + google-sheets/docs → <cwd> (если нет)
 #   SHELL:
 #     9. Добавляет alias <имя-репо>='cd <cwd> && claude' в ~/.zshrc или ~/.bashrc
@@ -153,7 +154,7 @@ for src in "${TMP}/claude-home/hooks/"*.sh; do
 done
 ok "хуки: создано ${hcreated}, пропущено ${hskipped} (уже было)"
 
-# --- 9. skills (close / handoff / write) ---
+# --- 9. skills (close / handoff / write / refine) ---
 echo ""
 log "Скиллы ${GLOBAL_DIR}/skills/"
 mkdir -p "${GLOBAL_DIR}/skills"
@@ -168,8 +169,11 @@ for sdir in "${TMP}/skills/"*/; do
     else
         sskipped=$((sskipped + 1))
     fi
+    # ~/.agents/skills/ читают Claude Code, Codex, Kimi и Qwen — один скилл на все CLI
+    mkdir -p "${HOME}/.agents/skills"
+    [ -e "${HOME}/.agents/skills/${sname}" ] || ln -s "${dst}" "${HOME}/.agents/skills/${sname}"
 done
-ok "скиллы: создано ${screated}, пропущено ${sskipped} (уже было)"
+ok "скиллы: создано ${screated}, пропущено ${sskipped} (уже было); ссылки в ~/.agents/skills/"
 
 # --- 10. MCP-серверы (~/.claude/.mcp.json) ---
 echo ""
