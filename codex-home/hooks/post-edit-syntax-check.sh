@@ -14,7 +14,7 @@ case "$TOOL_NAME" in
   apply_patch)
     # tool_input.command — текст патча: строки "*** Add File: path" / "*** Update File: path"
     FILES=$(echo "$INPUT" | jq -r '.tool_input.command // .tool_input.patch // empty' \
-            | sed -n 's/^\*\*\* \(Add\|Update\) File: //p') ;;
+            | grep -E '^\*\*\* (Add|Update) File: ' | sed -E 's/^\*\*\* (Add|Update) File: //') ;;  # BSD/GNU sed
   *) exit 0 ;;
 esac
 
