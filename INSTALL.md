@@ -99,13 +99,15 @@ mkdir -p <repo>/memory
 - Если существует — **НЕ затирать** (там личные права/хуки пользователя). Показать diff, спросить `skip`/`merge`/`overwrite`. По умолчанию skip.
 
 **6.2 Статуслайн:**
-- Если `~/.claude/statusline-command.sh` нет — `cp /tmp/memory-install/claude-home/statusline-command.sh ~/.claude/ && chmod +x ~/.claude/statusline-command.sh`.
+- Основной — `claude-home/statusline.js` (node; `settings.json` уже указывает на него): модель, папка, ctx-токены и %, лимиты 5ч/7д с таймером сброса, цена сессии. Если `~/.claude/statusline.js` нет — скопировать.
+- Запасной bash-вариант `statusline-command.sh` — скопировать тоже (Windows-настройки указывают на него).
 
 **6.3 Хуки** (`~/.claude/hooks/`) — пофайлово, не затирая:
-- `warn-before-push.sh`, `post-edit-syntax-check.sh`. `chmod +x` после копирования.
+- `warn-before-push.sh`, `post-edit-syntax-check.sh`, `drift-markers.py` (метки `#длинно/#вода/#круги` из промта → `~/.claude/drift-markers.tsv`), `canary-name-check.py` (Stop-hook: ответ не начался с имени пользователя → предупреждение в stderr). `chmod +x` после копирования.
+- Канарейка работает только после `echo "Имя" > ~/.claude/canary-name` (спросить имя у пользователя) и секции «Канарейка контекста» в `~/.claude/CLAUDE.md` (есть в шаблоне).
 
 **6.4 Скиллы** (`~/.claude/skills/`) — по одной папке, не затирая существующие:
-- `close`, `handoff`, `write`, `refine`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
+- `close`, `handoff`, `write` (+ `references/` — конспекты книг Ильяхова), `diplomat` (резкое → рабочее), `council` (4 параллельных агента для стратегических решений), `memory-audit` (чистка долгой памяти), `refine`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
 - Для каждого — ссылка `~/.agents/skills/<name> → ~/.claude/skills/<name>` (эту папку читают Claude Code, Codex, Kimi и Qwen; `refine` без неё виден только Claude).
 
 **6.4a refine — проверка второй и третьей моделью** (`skills/refine/README.md` — полное описание):
@@ -122,6 +124,12 @@ mkdir -p <repo>/memory
 - **sqlite и другие credential-bound MCP** (если были у пользователя) добавляются через `claude mcp add` вручную — их в пэке нет, путь к БД и доступы машинно-зависимы.
 
 ---
+
+**6.6 Другие CLI — Codex / Qwen / Kimi** (только если соответствующий CLI уже установлен; `refine` нужны минимум два кроме Claude):
+- Codex: `codex-home/AGENTS.md` → `~/.codex/AGENTS.md` (глобальные правила, зеркало `~/.claude/CLAUDE.md` без Claude-специфики), `codex-home/hooks/*` → `~/.codex/hooks/`, `codex-home/hooks.json` → `~/.codex/hooks.json` с заменой `__HOME__` на домашнюю папку. Не затирать существующее.
+- Qwen: `qwen-home/QWEN.md` → `~/.qwen/QWEN.md`.
+- Kimi: строки из `kimi-home/config.snippet.toml` в `~/.kimi-code/config.toml` (усилие `max`) — руками, файл содержит OAuth-секции, не перезаписывать.
+- В проекте адаптеры для этих CLI — `AGENTS.md` (Codex, Kimi) и `QWEN.md` в корне репо: копии карты проекта без ссылок на `CLAUDE.md`/`.claude/**` (каждый агент читает только свой adapter и нейтральные `rules/`, `context.md`).
 
 ## Шаг 7. Shell-алиас быстрого запуска
 

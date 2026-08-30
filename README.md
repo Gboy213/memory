@@ -92,14 +92,22 @@ memory/
 ├── skills/            ← триггерные навыки (копируются в ~/.claude/skills/ + ссылка ~/.agents/skills/ для Codex/Kimi/Qwen)
 │   ├── close/                 ← зафиксировать контекст перед закрытием терминала
 │   ├── handoff/               ← промт для продолжения в новой сессии
+│   ├── diplomat/              ← резкое/эмоциональное сообщение → взрослый рабочий текст
+│   ├── council/               ← 4 параллельных агента (Architect/Skeptic/Pragmatist/Critic) для стратегических решений
+│   ├── memory-audit/          ← чистка долгой памяти: дубли, устаревшее, противоречия
 │   ├── refine/                ← решение через две другие модели: Optimizer/Auditor → Judge, 2 раунда (Codex/Claude/Kimi/Qwen)
-│   └── write/                 ← редактура текстов (35 правил Ильяхова + AI-маркеры)
+│   └── write/                 ← редактура текстов (объясняющий редактор + конспекты Ильяхова в references/)
 │
-└── claude-home/       ← среда Claude Code (копируется в ~/.claude/)
-    ├── settings.json          ← права allow/deny, статуслайн, хуки, ultrathink
-    ├── statusline-command.sh  ← нижняя панель: модель, папка, ctx%, лимиты
-    ├── hooks/                 ← warn-before-push, post-edit-syntax-check
-    └── .mcp.json.template     ← MCP-серверы (playwright + google-sheets/docs)
+├── claude-home/       ← среда Claude Code (копируется в ~/.claude/)
+│   ├── settings.json          ← права allow/deny, статуслайн, хуки, ultrathink, fullscreen
+│   ├── statusline.js          ← нижняя панель: модель, папка, ctx-токены/%, лимиты 5ч/7д + таймер, цена сессии
+│   ├── statusline-command.sh  ← запасной bash-вариант панели
+│   ├── hooks/                 ← warn-before-push, post-edit-syntax-check, drift-markers, canary-name-check
+│   └── .mcp.json.template     ← MCP-серверы (playwright + google-sheets/docs)
+│
+├── codex-home/        ← глобальный слой Codex (~/.codex): AGENTS.md, hooks, hooks.json
+├── qwen-home/         ← глобальный слой Qwen Code (~/.qwen/QWEN.md)
+└── kimi-home/         ← сниппет config.toml для Kimi (усилие max)
 ```
 
 Установщик настраивает не только контент в репо, но и **среду на машине**: пишет `~/.claude/settings.json` (права + статуслайн + хуки + ultrathink-по-умолчанию), `~/.claude/.mcp.json` (MCP-серверы), кладёт скиллы в `~/.claude/skills/`, и добавляет shell-алиас `<имя-репо>` (`cd <repo> && claude`) в `~/.zshrc`/`~/.bashrc`. Существующие файлы не затираются.

@@ -17,7 +17,7 @@
 #     4. Создаёт ~/.claude/CLAUDE.md (если нет)
 #     5. Создаёт ~/.claude/settings.json — права, статуслайн, хуки, ultrathink (если нет)
 #     6. Копирует statusline-command.sh + hooks/ (если нет)
-#     7. Копирует skills/ — close, handoff, write, refine (по одному, не затирая)
+#     7. Копирует skills/ — close, handoff, write, diplomat, council, memory-audit, refine (по одному, не затирая)
 #        + ссылка ~/.agents/skills/<name> → общая папка скиллов Codex/Kimi/Qwen (refine зовут все четыре CLI)
 #     8. Создаёт ~/.claude/.mcp.json — playwright + google-sheets/docs → <cwd> (если нет)
 #   SHELL:
@@ -134,6 +134,14 @@ if [ ! -f "${GLOBAL_DIR}/statusline-command.sh" ]; then
 else
     skip "${GLOBAL_DIR}/statusline-command.sh"
 fi
+# statusline.js — основной вариант (settings.json → node ~/.claude/statusline.js):
+# модель · папка · ctx% · лимиты 5ч/7д с таймером сброса · цена сессии. bash-версия — запасная.
+if [ ! -f "${GLOBAL_DIR}/statusline.js" ]; then
+    cp "${TMP}/claude-home/statusline.js" "${GLOBAL_DIR}/statusline.js"
+    ok "создан ${GLOBAL_DIR}/statusline.js"
+else
+    skip "${GLOBAL_DIR}/statusline.js"
+fi
 
 # --- 8. hooks ---
 echo ""
@@ -141,7 +149,7 @@ log "Хуки ${GLOBAL_DIR}/hooks/"
 mkdir -p "${GLOBAL_DIR}/hooks"
 hcreated=0
 hskipped=0
-for src in "${TMP}/claude-home/hooks/"*.sh; do
+for src in "${TMP}/claude-home/hooks/"*.sh "${TMP}/claude-home/hooks/"*.py; do
     name=$(basename "${src}")
     dst="${GLOBAL_DIR}/hooks/${name}"
     if [ ! -f "${dst}" ]; then
@@ -153,6 +161,7 @@ for src in "${TMP}/claude-home/hooks/"*.sh; do
     fi
 done
 ok "хуки: создано ${hcreated}, пропущено ${hskipped} (уже было)"
+[ -f "${GLOBAL_DIR}/canary-name" ] || log "    канарейка контекста: положи своё имя в ${GLOBAL_DIR}/canary-name (echo \"Имя\" > ~/.claude/canary-name) — без него Stop-hook молчит"
 
 # --- 9. skills (close / handoff / write / refine) ---
 echo ""
@@ -174,6 +183,35 @@ for sdir in "${TMP}/skills/"*/; do
     [ -e "${HOME}/.agents/skills/${sname}" ] || ln -s "${dst}" "${HOME}/.agents/skills/${sname}"
 done
 ok "скиллы: создано ${screated}, пропущено ${sskipped} (уже было); ссылки в ~/.agents/skills/"
+
+# --- 9b. Codex / Qwen / Kimi — глобальный слой других CLI (только если CLI уже стоит) ---
+echo ""
+log "Другие CLI (Codex / Qwen / Kimi)"
+if command -v codex >/dev/null 2>&1; then
+    mkdir -p "${HOME}/.codex/hooks"
+    [ -f "${HOME}/.codex/AGENTS.md" ] && skip "~/.codex/AGENTS.md" || { cp "${TMP}/codex-home/AGENTS.md" "${HOME}/.codex/AGENTS.md"; ok "создан ~/.codex/AGENTS.md (глобальные правила Codex)"; }
+    for src in "${TMP}/codex-home/hooks/"*; do
+        name=$(basename "${src}")
+        [ -f "${HOME}/.codex/hooks/${name}" ] || { cp "${src}" "${HOME}/.codex/hooks/${name}"; chmod +x "${HOME}/.codex/hooks/${name}"; }
+    done
+    if [ ! -f "${HOME}/.codex/hooks.json" ]; then
+        sed "s|__HOME__|${HOME}|g" "${TMP}/codex-home/hooks.json" > "${HOME}/.codex/hooks.json"
+        ok "создан ~/.codex/hooks.json (warn-before-push, syntax-check, drift-markers)"
+    else
+        skip "~/.codex/hooks.json — образец в ${TMP}/codex-home/hooks.json"
+    fi
+else
+    skip "codex не установлен — слой ~/.codex пропущен"
+fi
+if command -v qwen >/dev/null 2>&1; then
+    mkdir -p "${HOME}/.qwen"
+    [ -f "${HOME}/.qwen/QWEN.md" ] && skip "~/.qwen/QWEN.md" || { cp "${TMP}/qwen-home/QWEN.md" "${HOME}/.qwen/QWEN.md"; ok "создан ~/.qwen/QWEN.md (глобальные правила Qwen)"; }
+else
+    skip "qwen не установлен — слой ~/.qwen пропущен"
+fi
+if command -v kimi >/dev/null 2>&1; then
+    log "kimi найден: усилие max для refine — см. ${TMP}/kimi-home/config.snippet.toml → ~/.kimi-code/config.toml (руками)"
+fi
 
 # --- 10. MCP-серверы (~/.claude/.mcp.json) ---
 echo ""

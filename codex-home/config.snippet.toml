@@ -1,0 +1,5 @@
+# Codex CLI — глубокое рассуждение + статуслайн (контекст, токены, лимиты 5ч/7д).
+# СЛИТЬ РУКАМИ в ~/.codex/config.toml (файл содержит auth/OAuth-секции — не перезаписывать).
+model_reasoning_effort = "xhigh"
+status_line = ["model-with-reasoning", "context-remaining", "context-used", "used-tokens", "total-input-tokens", "total-output-tokens", "five-hour-limit", "weekly-limit"]
+status_line_use_colors = true

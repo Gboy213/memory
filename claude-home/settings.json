@@ -36,7 +36,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -45,6 +45,15 @@
             "type": "command",
             "command": "echo ultrathink",
             "timeout": 2
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/drift-markers.py",
+            "timeout": 5
           }
         ]
       }
@@ -72,11 +81,22 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/canary-name-check.py",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
+    "command": "node ~/.claude/statusline.js"
   },
   "enabledPlugins": {
     "document-skills@anthropic-agent-skills": true
@@ -91,5 +111,6 @@
   },
   "language": "Russian",
   "verbose": true,
-  "skipWorkflowUsageWarning": true
+  "skipWorkflowUsageWarning": true,
+  "tui": "fullscreen"
 }

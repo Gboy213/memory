@@ -1,0 +1,10 @@
+# Kimi Code — усилие «max» по умолчанию (refine зовёт Kimi как ревьюера/судью).
+# Добавить в ~/.kimi-code/config.toml (проверь актуальное имя модели: `kimi --help` / список моделей).
+default_model = "kimi-code/k3"
+
+[thinking]
+effort = "max"
+
+[models."kimi-code/k3"]
+support_efforts = [ "low", "high", "max" ]
+default_effort = "max"
