@@ -17,7 +17,7 @@
 #     4. Создаёт ~/.claude/CLAUDE.md (если нет)
 #     5. Создаёт ~/.claude/settings.json — права, статуслайн, хуки, ultrathink (если нет)
 #     6. Копирует statusline-command.sh + hooks/ (если нет)
-#     7. Копирует skills/ — close, handoff, write, diplomat, council, memory-audit, refine (по одному, не затирая)
+#     7. Копирует skills/ — close, handoff, write, diplomat, council, memory-audit, refine, night (по одному, не затирая)
 #        + ссылка ~/.agents/skills/<name> → общая папка скиллов Codex/Kimi/Qwen (refine зовут все четыре CLI)
 #     8. Создаёт ~/.claude/.mcp.json — playwright + google-sheets/docs → <cwd> (если нет)
 #   SHELL:
@@ -163,7 +163,7 @@ done
 ok "хуки: создано ${hcreated}, пропущено ${hskipped} (уже было)"
 [ -f "${GLOBAL_DIR}/canary-name" ] || log "    канарейка контекста: положи своё имя в ${GLOBAL_DIR}/canary-name (echo \"Имя\" > ~/.claude/canary-name) — без него Stop-hook молчит"
 
-# --- 9. skills (close / handoff / write / refine) ---
+# --- 9. skills (close / handoff / write / refine / night) ---
 echo ""
 log "Скиллы ${GLOBAL_DIR}/skills/"
 mkdir -p "${GLOBAL_DIR}/skills"

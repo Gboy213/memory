@@ -1,0 +1,4 @@
+n	id	class	paths	entry	check	runtime	last_audit	note
+1	data-truth	CORE	src/adapters,src/db	docs/data-map.md	python3 -m pytest tests -q	внешний источник → адаптер → БД → API отчёта → цифра на экране без дыр, дублей и тихих нулей		
+2	order-flow	CORE	src/api,src/web	docs/context.md	python3 -m pytest tests -q	действие пользователя → API → БД → правильный результат и честная ошибка на живом экране		
+3	recovery	SUPPORT	deploy,scripts/backup.sh	docs/infra.md	bash scripts/smoke.sh	живые сервисы/БД → проверенный бэкап → воспроизводимое восстановление и видимый отказ		

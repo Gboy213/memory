@@ -107,7 +107,7 @@ mkdir -p <repo>/memory
 - Канарейка работает только после `echo "Имя" > ~/.claude/canary-name` (спросить имя у пользователя) и секции «Канарейка контекста» в `~/.claude/CLAUDE.md` (есть в шаблоне). Предупреждение приходит как systemMessage хука (Stop-событие); проверка: `echo '{"last_assistant_message":"Привет"}' | python3 ~/.claude/hooks/canary-name-check.py` → JSON с текстом предупреждения.
 
 **6.4 Скиллы** (`~/.claude/skills/`) — по одной папке, не затирая существующие:
-- `close`, `handoff`, `write` (+ `references/` — конспекты книг Ильяхова), `diplomat` (резкое → рабочее), `council` (4 параллельных агента для стратегических решений), `memory-audit` (чистка долгой памяти), `refine`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
+- `close`, `handoff`, `write` (+ `references/` — конспекты книг Ильяхова), `diplomat` (резкое → рабочее), `council` (4 параллельных агента для стратегических решений), `memory-audit` (чистка долгой памяти), `refine`, `night`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
 - Для каждого — ссылка `~/.agents/skills/<name> → ~/.claude/skills/<name>` (эту папку читают Claude Code, Codex, Kimi и Qwen; `refine` без неё виден только Claude).
 
 **6.4a refine — проверка второй моделью** (`skills/refine/README.md` — полное описание):
@@ -116,6 +116,14 @@ mkdir -p <repo>/memory
 - Проверка: `python3 ~/.agents/skills/refine/refine.py init --host claude --reviewer codex --slug test` печатает критика раунда 1 и резерв → удалить созданную папку `.llm-audit/` в текущей директории.
 - Kimi: усилие `max` в `~/.kimi-code/config.toml` (`[thinking] effort = "max"`); модели Kimi/Qwen закреплены в `skills/refine/models.json`.
 - Проверено на macOS. На Windows не тестировалось: `refine.py` зовёт CLI по имени через subprocess — `.cmd`-шимы npm могут не находиться, при первом запуске проверить.
+- Как ставить задачу: `skills/refine/README.md § Как ставить задачу` — критик первым словом, готовое решение как предмет, «найди ошибки» = audit / «упрости» = optimize, `full` для кода и diff'ов.
+
+**6.4b night — ночная миссия тремя моделями** (`skills/night/README.md` — полное описание):
+- Что это: пока пользователь спит, ведущая модель (codex → claude → kimi по ночам) проходит один сквозной бизнес-поток репо от источника до результата, две другие параллельно проверяют находки и судят их; простое чинится и деплоится ночью по контракту, спорное ждёт «да» утром. Вызов: `/night` (Claude Code), `$night` (Codex), `/skill:night` (Kimi); утром тот же `/night` показывает выжимку.
+- Нужно: все три CLI `codex`, `claude`, `kimi` в PATH и залогинены; ноут не спит всю ночь. Модели получают полный доступ к машине (`--dangerously-skip-permissions`, `danger-full-access`) — это надо сказать пользователю прямо.
+- Пакет репо (обязателен, без него ночь не стартует): `cp -r ~/.claude/skills/night/package-template <repo>/night`, затем вместе с пользователем заполнить `night/contract.md` (что это за репо, таблица «контур → тесты → деплой», что модель чинит сама, что ждёт решения) и `night/zones.tsv` (3–5 сквозных бизнес-потоков, не папок). Хуки `notify.sh` (Telegram) и `preflight.sh` — по желанию, примеры лежат рядом.
+- Проверка: из корня репо `bash ~/.agents/skills/night/run.sh --dry-run` печатает миссию, ведущую и проверяющие модели. Первый живой прогон — днём, `--only <самая безопасная миссия>`, в foreground.
+- Как ставить задачу: `skills/night/README.md § Как ставить задачу` — миссии задаются заранее в `zones.tsv`, вечером только выбор (`/night` или `/night <тема>`), утром решения «да N / нет N».
 
 **6.5 MCP-серверы** (`~/.claude/.mcp.json`):
 - Если файла нет — взять `claude-home/.mcp.json.template`, заменить `__REPO__` на абсолютный путь `<repo>`, записать в `~/.claude/.mcp.json`.
@@ -125,7 +133,7 @@ mkdir -p <repo>/memory
 
 ---
 
-**6.6 Другие CLI — Codex / Qwen / Kimi** (только если соответствующий CLI уже установлен; `refine` нужен минимум один кроме Claude):
+**6.6 Другие CLI — Codex / Qwen / Kimi** (только если соответствующий CLI уже установлен; `refine` нужен минимум один кроме Claude, `night` — все три codex/claude/kimi):
 - Codex: `codex-home/AGENTS.md` → `~/.codex/AGENTS.md` (глобальные правила, зеркало `~/.claude/CLAUDE.md` без Claude-специфики), `codex-home/hooks/*` → `~/.codex/hooks/`, `codex-home/hooks.json` → `~/.codex/hooks.json` с заменой `__HOME__` на домашнюю папку. Не затирать существующее. **После установки хуков Codex их надо доверить руками:** в codex открыть `/hooks`, проверить три определения (warn-before-push, post-edit-syntax-check, drift-markers) и подтвердить — до этого Codex их пропускает. Статуслайн Codex (остаток контекста, токены, лимиты 5ч/7д) и `model_reasoning_effort = "xhigh"` — строки из `codex-home/config.snippet.toml` слить в `~/.codex/config.toml` руками (файл содержит auth, не перезаписывать).
 - Qwen: `qwen-home/QWEN.md` → `~/.qwen/QWEN.md`.
 - Kimi: строки из `kimi-home/config.snippet.toml` в `~/.kimi-code/config.toml` (усилие `max`) — руками, файл содержит OAuth-секции, не перезаписывать.

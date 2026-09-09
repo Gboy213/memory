@@ -1,0 +1,8 @@
+#!/bin/bash
+# Хук предпосылок: то, без чего вся ночь мертва (ssh до сервера деплоя, токены API).
+# Каждая причина — отдельной строкой в stdout; любой ненулевой код = ночь не стартует.
+# Переименуй в preflight.sh, сделай chmod +x. Проверки CLI (codex/claude/kimi) движок делает сам.
+rc=0
+ssh -n -o BatchMode=yes -o ConnectTimeout=8 "${DEPLOY_HOST:-user@example.com}" true 2>/dev/null \
+  || { echo "ssh ${DEPLOY_HOST:-user@example.com} не отвечает — деплой ночью невозможен"; rc=1; }
+exit $rc
