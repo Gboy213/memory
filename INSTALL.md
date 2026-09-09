@@ -69,6 +69,7 @@ mkdir -p <repo>/rules
 
 Для каждого файла в `/tmp/memory-install/rules/*.md`:
 - Если `<repo>/rules/<имя>.md` НЕ существует — copy.
+- `quality-tiers.md` содержит реестр модулей-заглушку: заполнить вместе с пользователем (что зарабатывает деньги = CORE, что держит CORE = SUPPORT, пробы = EXPERIMENT, архив = DORMANT). Без реестра правило не работает.
 - Если существует — **не затирать**. В отчёте отметить «уже было: rules/<имя>.md».
 
 Не использовать `cp -r rules/` целиком — оно затрёт существующие правила пользователя.
@@ -103,7 +104,7 @@ mkdir -p <repo>/memory
 - Запасной bash-вариант `statusline-command.sh` — скопировать тоже (Windows-настройки указывают на него).
 
 **6.3 Хуки** (`~/.claude/hooks/`) — пофайлово, не затирая:
-- `warn-before-push.sh`, `post-edit-syntax-check.sh`, `drift-markers.py` (метки `#длинно/#вода/#круги` из промта → `~/.claude/drift-markers.tsv`), `canary-name-check.py` (Stop-hook: ответ не начался с имени пользователя → systemMessage-предупреждение). `chmod +x` после копирования.
+- `warn-before-push.sh`, `post-edit-syntax-check.sh`, `drift-markers.py` (метки `#длинно/#вода/#круги` из промта → `~/.claude/drift-markers.tsv`), `canary-name-check.py` (Stop-hook: ответ не начался с имени пользователя → systemMessage-предупреждение), `no-conclusions-check.py` (Stop-hook: абзац-вывод или мораль в конце ответа → systemMessage-предупреждение). `chmod +x` после копирования.
 - Канарейка работает только после `echo "Имя" > ~/.claude/canary-name` (спросить имя у пользователя) и секции «Канарейка контекста» в `~/.claude/CLAUDE.md` (есть в шаблоне). Предупреждение приходит как systemMessage хука (Stop-событие); проверка: `echo '{"last_assistant_message":"Привет"}' | python3 ~/.claude/hooks/canary-name-check.py` → JSON с текстом предупреждения.
 
 **6.4 Скиллы** (`~/.claude/skills/`) — по одной папке, не затирая существующие:
@@ -141,7 +142,7 @@ mkdir -p <repo>/memory
 
 ## Шаг 7. Shell-алиас быстрого запуска
 
-Чтобы Claude запускался по короткой команде с заходом в проект (как `213` → `cd <repo> && claude`):
+Чтобы Claude запускался по короткой команде с заходом в проект (как `myrepo` → `cd <repo> && claude`):
 
 ```bash
 ALIAS_NAME=$(basename "<repo>")

@@ -91,6 +91,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/no-conclusions-check.py",
+            "timeout": 5
+          }
+        ]
       }
     ]
   },

@@ -39,7 +39,7 @@ Windows-скрипт (v2) ставит базу с нуля (git, Node, GitHub C
 регион-блоке — fallback на npm), раскладывает глобальный слой `~/.claude`
 (CLAUDE.md-правила, settings.json в Windows-варианте, статуслайн, хуки, скиллы —
 не затирая твоё), логинит в GitHub и по желанию клонирует рабочий репо в
-`C:\213\<имя>`; если в том репо есть `scripts/station-setup.ps1` — запускает его.
+`C:\work\<имя>`; если в том репо есть `scripts/station-setup.ps1` — запускает его.
 Запускать в PowerShell от администратора. Проектный слой (rules/ в твоём репо,
 проектный CLAUDE.md) — по-прежнему Способом 1 внутри Claude.
 
@@ -73,8 +73,16 @@ memory/
 ├── rules/             ← общие правила работы Claude
 │   ├── communication.md       ← стиль общения (сухо, в суть)
 │   ├── coding.md              ← три принципа кода (минимум, хирургия, думать)
-│   ├── data-accuracy.md       ← запрет на выдуманные цифры
-│   ├── context-integrity.md   ← верификация правок, не доверять exit code 0
+│   ├── data-accuracy.md       ← запрет на выдуманные цифры, вердикты и обобщения
+│   ├── verify-before-act.md   ← проверять первоисточник ПЕРЕД действием
+│   ├── context-integrity.md   ← верификация правок, «готово» только с доказательством
+│   ├── entrepreneur-mindset.md ← риск × вероятность × цена страховки вместо комплаенса
+│   ├── quality-tiers.md       ← CORE / SUPPORT / EXPERIMENT / DORMANT — куда ходит аудит
+│   ├── pair-review.md         ← две модели: делатель и критик по первоисточникам
+│   ├── reliable-mutations.md  ← код, который меняет состояние: где точка commit
+│   ├── business-logic-sealed.md ← защита работающих формул от «улучшений» ИИ
+│   ├── infra-registry.md      ← cron и сервисы обязаны быть в реестре репо
+│   ├── accuracy-triggers.md   ← словарь команд точности («покажи след», «триангулируй»)
 │   ├── session-management.md  ← управление сессиями, handoff, /compact
 │   ├── session-start.md       ← что делать в начале сессии
 │   ├── search-first.md        ← искать готовое до написания нового
@@ -103,7 +111,7 @@ memory/
 │   ├── settings.json          ← права allow/deny, статуслайн, хуки, ultrathink, fullscreen
 │   ├── statusline.js          ← нижняя панель: модель, папка, ctx-токены/%, лимиты 5ч/7д + таймер, цена сессии
 │   ├── statusline-command.sh  ← запасной bash-вариант панели
-│   ├── hooks/                 ← warn-before-push, post-edit-syntax-check, drift-markers, canary-name-check
+│   ├── hooks/                 ← warn-before-push, post-edit-syntax-check, drift-markers, canary-name-check, no-conclusions-check
 │   └── .mcp.json.template     ← MCP-серверы (playwright + google-sheets/docs)
 │
 ├── codex-home/        ← глобальный слой Codex (~/.codex): AGENTS.md, hooks, hooks.json, config.snippet.toml (статуслайн + reasoning xhigh, слить руками)
