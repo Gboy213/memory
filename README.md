@@ -95,7 +95,7 @@ memory/
 │   ├── diplomat/              ← резкое/эмоциональное сообщение → взрослый рабочий текст
 │   ├── council/               ← 4 параллельных агента (Architect/Skeptic/Pragmatist/Critic) для стратегических решений
 │   ├── memory-audit/          ← чистка долгой памяти: дубли, устаревшее, противоречия
-│   ├── refine/                ← решение через две другие модели: Optimizer/Auditor → Judge, 2 раунда (Codex/Claude/Kimi/Qwen)
+│   ├── refine/                ← решение через одну выбранную тобой модель-критика (Codex/Claude/Kimi/Qwen); судья и второй раунд по флагу
 │   └── write/                 ← редактура текстов (объясняющий редактор + конспекты Ильяхова в references/)
 │
 ├── claude-home/       ← среда Claude Code (копируется в ~/.claude/)

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""refine — Primary → Optimizer → Judge, two rounds, three CLIs (codex / claude / kimi).
+"""refine — Primary → one external reviewer (default), optional Judge, up to two rounds.
 
-The host session is Primary. This script only calls the two *other* CLIs in
+Default is two models: the host session (Primary) plus ONE reviewer explicitly chosen
+by the user; Primary rules on its report. `--judge` adds a third model over that report,
+`--rounds 2` gives another external a second pass.
+
+The host session is Primary. This script only calls the *other* CLIs in
 read-only mode (Codex: OS sandbox; Claude: tool allowlist; Kimi: agent profile without
 Write/Edit — Bash restricted by prompt only, no OS sandbox), keeps the audit trail in .llm-audit/<run>/ and records metrics in
 meta.json. Commands: init | round N | wait N | status | finish   (see README.md).
@@ -18,12 +22,13 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 AUDIT = Path(os.environ.get("REFINE_AUDIT_DIR", ".llm-audit"))
-TIMEOUT = int(os.environ.get("REFINE_TIMEOUT", "1200"))  # seconds per external call
-JUDGE_TIMEOUT = int(os.environ.get("REFINE_JUDGE_TIMEOUT", "600"))  # judge cap; a timeout hands the role to the reserve
+TIMEOUT = int(os.environ.get("REFINE_TIMEOUT", "1800"))  # seconds per external call
+JUDGE_TIMEOUT = int(os.environ.get("REFINE_JUDGE_TIMEOUT", "1200"))  # judge cap; a timeout hands the role to the reserve
 MAX_PROMPT = 600_000  # chars; kimi takes the prompt via argv (ARG_MAX 1 MB on macOS)
 CLIS = ["codex", "claude", "kimi", "qwen"]
-# externals = the three CLIs that are not the host: round 1 = (e0 → e1), round 2 = (e1 → e0), e2 = reserve
-# (steps in when a call hits a quota/rate limit or fails twice). REFINE_EXTERNALS="a,b,c" overrides the order.
+# The user selects round-1 reviewer. Remaining CLIs are optional Judge/round-2/reserve;
+# REFINE_EXTERNALS only sets their priority. Headless callers may opt into automatic
+# reviewer selection explicitly with REFINE_AUTOMATED=1.
 QUOTA_RE = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b|insufficient (credit|balance)|"
                       r"limit (reached|exceeded)|capacity|overloaded|exhausted", re.I)
 MODELS = json.loads((HERE / "models.json").read_text()) if (HERE / "models.json").exists() else {}
@@ -143,17 +148,24 @@ def build_prompt(run, meta, role, n, cli=None):
         parts.append(section("ROUND 1 HISTORY (Judge verdicts already applied by Primary)", read(run / "judge-1.md")))
     if role == "judge":
         parts.append(section("AUDITOR REPORT" if mode == "audit" else "OPTIMIZER REPORT", read(run / f"optimizer-{n}.md")))
-    base = (f"Base commit: {meta['base_sha']} — review the code changes yourself with `git diff {meta['base_sha']}` "
-            f"and `git status --short` (untracked files are part of the solution too).\n") if meta.get("base_sha") else ""
-    if cli == "qwen" and read(run / f"{sol}.diff"):  # qwen -p has no shell: give it the diff snapshot inline
-        parts.append(section("CODE CHANGES (git diff snapshot — you have no shell, read files with your file tools)",
-                             read(run / f"{sol}.diff")[:150_000]))
-        base = "Code changes are inlined above; verify against the files with your read tools.\n"
-    parts.append(section("ENVIRONMENT",
-                         f"Working directory: {meta['cwd']} — you have read-only access; verify claims against "
-                         f"its files, git history and docs before asserting them.\n{base}"
-                         f"Audit folder of this run: {run.resolve()}\n"
-                         f"Write your answer as plain markdown to stdout only. Do not modify any files."))
+    if meta.get("light"):
+        parts.append(section("ENVIRONMENT",
+                             "LIGHT MODE: the full deliverable and its supporting facts are inlined above. "
+                             "Work ONLY with them: do not read repository files, do not run git or shell "
+                             "commands, do not browse the web. Judge the text as given.\n"
+                             "Write your answer as plain markdown to stdout only. Do not modify any files."))
+    else:
+        base = (f"Base commit: {meta['base_sha']} — review the code changes yourself with `git diff {meta['base_sha']}` "
+                f"and `git status --short` (untracked files are part of the solution too).\n") if meta.get("base_sha") else ""
+        if cli == "qwen" and read(run / f"{sol}.diff"):  # qwen -p has no shell: give it the diff snapshot inline
+            parts.append(section("CODE CHANGES (git diff snapshot — you have no shell, read files with your file tools)",
+                                 read(run / f"{sol}.diff")[:150_000]))
+            base = "Code changes are inlined above; verify against the files with your read tools.\n"
+        parts.append(section("ENVIRONMENT",
+                             f"Working directory: {meta['cwd']} — you have read-only access; verify claims against "
+                             f"its files, git history and docs before asserting them.\n{base}"
+                             f"Audit folder of this run: {run.resolve()}\n"
+                             f"Write your answer as plain markdown to stdout only. Do not modify any files."))
     prompt = "\n\n".join(parts)
     if len(prompt) > MAX_PROMPT:
         raise RuntimeError(f"prompt too large ({len(prompt)} chars > {MAX_PROMPT}); shorten the solution text")
@@ -254,6 +266,8 @@ def call(cli, role, n, prompt, run, meta):
     reserve = meta.get("reserve")
     plan = [(cli, 1), (cli, 2)] + ([(reserve, 1)] if reserve and reserve != cli else [])
     timeout = JUDGE_TIMEOUT if role == "judge" else TIMEOUT
+    if meta.get("light"):  # text-only run: no repo walk, so a call this long is stuck, not thorough
+        timeout = min(timeout, int(os.environ.get("REFINE_LIGHT_TIMEOUT", "600")))
     quota_hit = False
     for cur, attempt in plan:
         if cur == cli and attempt == 2 and quota_hit:
@@ -325,6 +339,14 @@ def cmd_init(a):
     host = a.host or detect_host()
     if host not in CLIS:
         sys.exit(f"unknown host {host!r}: use {'|'.join(CLIS)}")
+    reviewer = a.reviewer
+    if not reviewer and os.environ.get("REFINE_AUTOMATED") == "1":
+        reviewer = next((c for c in os.environ.get("REFINE_EXTERNALS", "").split(",")
+                         if c in CLIS and c != host), None)
+    if not reviewer:
+        sys.exit("reviewer is required: the user must choose codex|claude|kimi|qwen and pass --reviewer")
+    if reviewer == host:
+        sys.exit(f"reviewer must differ from host {host}: choose one of {', '.join(c for c in CLIS if c != host)}")
     slug = re.sub(r"[^a-z0-9]+", "-", (a.slug or "run").lower()).strip("-")[:40] or "run"
     rid = dt.datetime.now().strftime("%Y%m%d-%H%M") + "-" + slug
     run = AUDIT / rid
@@ -333,22 +355,28 @@ def cmd_init(a):
     if latest.is_symlink() or latest.exists():
         latest.unlink()
     latest.symlink_to(rid)
-    ext = [c for c in (os.environ.get("REFINE_EXTERNALS", "").split(",") if os.environ.get("REFINE_EXTERNALS")
-                       else CLIS) if c and c != host]
-    if len(ext) < 2:
-        sys.exit(f"need at least two external CLIs besides host {host}: got {ext}")
-    if len(set(ext)) < len(ext):
-        sys.exit(f"refused: the same CLI twice in externals {ext} — a model must not judge its own report")
-    opt, jud = ext[0], ext[1]
-    reserve = ext[2] if len(ext) > 2 else None
-    rounds = {"1": {"optimizer": opt, "judge": jud}}
+    preferred = os.environ.get("REFINE_EXTERNALS", "").split(",")
+    order = preferred + CLIS
+    pool = []
+    for cli in order:
+        if cli in CLIS and cli not in (host, reviewer) and cli not in pool:
+            pool.append(cli)
+    need_other = a.judge or a.rounds == 2
+    if need_other and not pool:
+        sys.exit(f"need another external CLI for --judge/--rounds 2 besides host={host} and reviewer={reviewer}")
+    jud = pool[0] if a.judge else None
+    second = jud or (pool[0] if a.rounds == 2 else None)
+    reserve = pool[1] if need_other and len(pool) > 1 else (pool[0] if not need_other and pool else None)
+    rounds = {"1": {"optimizer": reviewer, "judge": jud}}
     if a.rounds == 2:
-        rounds["2"] = {"optimizer": jud, "judge": opt}
-    meta = {"run": rid, "host": host, "mode": a.mode, "reserve": reserve, "cwd": os.getcwd(), "started": now(),
+        rounds["2"] = {"optimizer": second, "judge": reviewer if a.judge else None}
+    meta = {"run": rid, "host": host, "mode": a.mode, "light": not a.full, "reserve": reserve, "cwd": os.getcwd(),
+            "reviewer_requested": reviewer, "started": now(),
             "base_sha": git("rev-parse", "HEAD").strip() or None, "rounds": rounds, "calls": []}
     meta_save(run, meta)
-    print(f"RUN={run}\nhost={host} (Primary) | mode={a.mode} | " + " | ".join(f"round {k}: optimizer={v['optimizer']} judge={v['judge']}"
-                                                              for k, v in rounds.items()) + f" | reserve={reserve}\n"
+    print(f"RUN={run}\nhost={host} (Primary) | mode={a.mode}{' (full)' if a.full else ' (light)'} | "
+          + " | ".join(f"round {k}: {v['optimizer']}" + (f" → judge {v['judge']}" if v["judge"] else " (no judge)")
+                       for k, v in rounds.items()) + f" | reserve={reserve}\n"
           f"now write {run}/task.md (verbatim user task) and {run}/primary.md (your solution), then: refine.py round 1")
 
 
@@ -380,7 +408,8 @@ def cmd_round(a):
                          stdout=logf, stderr=logf, stdin=subprocess.DEVNULL, start_new_session=True)
     set_status(run, n, "running", f"starting (pid {p.pid})")
     r = meta["rounds"][str(n)]
-    print(f"round {n} started in background (pid {p.pid}): optimizer={r['optimizer']} → judge={r['judge']}\n"
+    print(f"round {n} started in background (pid {p.pid}): {r['optimizer']}"
+          + (f" → judge {r['judge']}" if r.get("judge") else " (no judge)") + "\n"
           f"next: refine.py wait {n}")
 
 
@@ -403,6 +432,9 @@ def cmd_run(a):
             if re.match(r"\s*(KEEP AS IS|NO FINDINGS)", opt_text):
                 (run / f"judge-{n}.md").write_text(f"SKIPPED: {r['optimizer']} returned {opt_text.strip().splitlines()[0]} — nothing to judge\n")
                 r["state"] = "done"
+            elif not r.get("judge"):  # two-model run: Primary rules on the report itself
+                (run / f"judge-{n}.md").write_text("SKIPPED: two-model run (no judge) — Primary decides on the report\n")
+                r["state"] = "done"
             else:
                 judge_text = call(r["judge"], "judge", n, build_prompt(run, meta, "judge", n), run, meta)
                 if judge_text is None:
@@ -421,7 +453,7 @@ def cmd_run(a):
     r.update(parse_round(read(run / f"optimizer-{n}.md"), read(run / f"judge-{n}.md")))
     r["finished"] = now()
     meta_save(run, meta)
-    set_status(run, n, r["state"], f"optimizer={r['optimizer']} judge={r['judge']}")
+    set_status(run, n, r["state"], f"optimizer={r['optimizer']} judge={r.get('judge') or '-'}")
 
 
 def cmd_wait(a):
@@ -487,7 +519,7 @@ def cmd_finish(a):
             continue
         r = meta["rounds"][str(n)]
         ap = meta["applied"]["final" if n == len(meta["rounds"]) else "revision-1"]
-        lines.append(f"round {n}: {r.get('state', 'not run')} | optimizer={r['optimizer']} judge={r['judge']} | "
+        lines.append(f"round {n}: {r.get('state', 'not run')} | optimizer={r['optimizer']} judge={r.get('judge') or '-'} | "
                      f"proposals={r.get('proposals')} keep_as_is={r.get('keep_as_is')} | accept={r.get('accept')} "
                      f"modify={r.get('modify')} reject={r.get('reject')} unresolved={r.get('unresolved')} | "
                      f"applied={ap['applied']}/{ap['of']}")
@@ -498,13 +530,22 @@ def cmd_finish(a):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("init", help="create .llm-audit/<run>/ and fix the role rotation")
+    s = sub.add_parser("init", help="create .llm-audit/<run>/ with the user-chosen reviewer")
     s.add_argument("--host", help="your own CLI: claude|codex|kimi|qwen (auto-detected for claude/codex)")
+    s.add_argument("--reviewer", choices=CLIS,
+                   help="critic chosen by the user; must differ from --host")
     s.add_argument("--slug", help="2-4 words for the run name")
-    s.add_argument("--rounds", type=int, choices=(1, 2), default=2, help="1 = single round (optimizer → judge → final)")
+    s.add_argument("--rounds", type=int, choices=(1, 2), default=1,
+                   help="rounds of review (default 1); 2 = a second external model takes another pass")
+    s.add_argument("--judge", action="store_true",
+                   help="add a third model as Judge over the second model's report; default is two models "
+                        "(you + one external), Primary rules on the report itself")
     s.add_argument("--mode", choices=("optimize", "audit"), default="optimize",
                    help="optimize = second model simplifies (Optimizer); audit = second model hunts errors (adversarial Auditor)")
-    for name, h in (("round", "start round N in the background (optimizer → judge)"),
+    s.add_argument("--full", action="store_true",
+                   help="full run: externals read the repo/git/web themselves — REQUIRED for code changes; "
+                        "default is light: externals judge only the inlined primary.md, no repo/web (fast)")
+    for name, h in (("round", "start round N in the background (reviewer, then judge if --judge was set)"),
                     ("wait", "block until round N finishes: exit 0 done, 1 failed, 3 still running"),
                     ("_run", argparse.SUPPRESS)):
         s = sub.add_parser(name, help=h)

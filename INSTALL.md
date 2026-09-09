@@ -110,10 +110,10 @@ mkdir -p <repo>/memory
 - `close`, `handoff`, `write` (+ `references/` — конспекты книг Ильяхова), `diplomat` (резкое → рабочее), `council` (4 параллельных агента для стратегических решений), `memory-audit` (чистка долгой памяти), `refine`. `cp -r /tmp/memory-install/skills/<name> ~/.claude/skills/<name>` только если папки ещё нет.
 - Для каждого — ссылка `~/.agents/skills/<name> → ~/.claude/skills/<name>` (эту папку читают Claude Code, Codex, Kimi и Qwen; `refine` без неё виден только Claude).
 
-**6.4a refine — проверка второй и третьей моделью** (`skills/refine/README.md` — полное описание):
-- Что это: твоё решение прогоняется через две другие модели (одна ищет ошибки или лишнюю сложность, другая судит каждое замечание), два раунда с обменом ролями; ты остаёшься автором. Вызов: `/refine <задача>` в Claude Code, `$refine` в Codex, `/skill:refine` в Kimi.
-- Нужно: кроме твоего CLI ещё **минимум два** из `codex`, `claude`, `kimi`, `qwen` в PATH и залогиненных (подписки, не API-ключи). С одним CLI скрипт откажется стартовать.
-- Проверка: `python3 ~/.agents/skills/refine/refine.py init --host claude --slug test` печатает роли раундов и резерв → удалить созданную папку `.llm-audit/` в текущей директории.
+**6.4a refine — проверка второй моделью** (`skills/refine/README.md` — полное описание):
+- Что это: твоё решение прогоняется через одну другую модель, которую ты называешь сам (она ищет ошибки в режиме audit или лишнюю сложность в режиме optimize); ты остаёшься автором и сам решаешь по каждому замечанию. Третья модель-судья (`--judge`) и второй раунд (`--rounds 2`) — только по прямой просьбе. Вызов: `/refine codex <задача>` в Claude Code, `$refine claude <задача>` в Codex, `/skill:refine codex <задача>` в Kimi (вместо codex/claude — любой из четырёх CLI, кроме своего).
+- Нужно: кроме твоего CLI ещё **минимум один** из `codex`, `claude`, `kimi`, `qwen` в PATH и залогиненный (подписки, не API-ключи). Для `--judge` / `--rounds 2` — минимум два.
+- Проверка: `python3 ~/.agents/skills/refine/refine.py init --host claude --reviewer codex --slug test` печатает критика раунда 1 и резерв → удалить созданную папку `.llm-audit/` в текущей директории.
 - Kimi: усилие `max` в `~/.kimi-code/config.toml` (`[thinking] effort = "max"`); модели Kimi/Qwen закреплены в `skills/refine/models.json`.
 - Проверено на macOS. На Windows не тестировалось: `refine.py` зовёт CLI по имени через subprocess — `.cmd`-шимы npm могут не находиться, при первом запуске проверить.
 
@@ -125,7 +125,7 @@ mkdir -p <repo>/memory
 
 ---
 
-**6.6 Другие CLI — Codex / Qwen / Kimi** (только если соответствующий CLI уже установлен; `refine` нужны минимум два кроме Claude):
+**6.6 Другие CLI — Codex / Qwen / Kimi** (только если соответствующий CLI уже установлен; `refine` нужен минимум один кроме Claude):
 - Codex: `codex-home/AGENTS.md` → `~/.codex/AGENTS.md` (глобальные правила, зеркало `~/.claude/CLAUDE.md` без Claude-специфики), `codex-home/hooks/*` → `~/.codex/hooks/`, `codex-home/hooks.json` → `~/.codex/hooks.json` с заменой `__HOME__` на домашнюю папку. Не затирать существующее. **После установки хуков Codex их надо доверить руками:** в codex открыть `/hooks`, проверить три определения (warn-before-push, post-edit-syntax-check, drift-markers) и подтвердить — до этого Codex их пропускает. Статуслайн Codex (остаток контекста, токены, лимиты 5ч/7д) и `model_reasoning_effort = "xhigh"` — строки из `codex-home/config.snippet.toml` слить в `~/.codex/config.toml` руками (файл содержит auth, не перезаписывать).
 - Qwen: `qwen-home/QWEN.md` → `~/.qwen/QWEN.md`.
 - Kimi: строки из `kimi-home/config.snippet.toml` в `~/.kimi-code/config.toml` (усилие `max`) — руками, файл содержит OAuth-секции, не перезаписывать.
