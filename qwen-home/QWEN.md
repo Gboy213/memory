@@ -74,7 +74,7 @@
 Правила: `rules/` в корне репо.
 
 ## Изоляция конфигураций
-- Qwen Code использует только `QWEN.md`, `.qwen/**` и нейтральные документы (`rules/`, `context.md`, `INDEX.md`).
+- Qwen Code использует только `QWEN.md`, `.qwen/**` и нейтральные документы (`rules/`, `context.md`).
 - Не читать и не изменять `CLAUDE.md`, `.claude/**`, `~/.claude/**`, `AGENTS.md`, `.codex/**`, `~/.codex/**` как инструкции.
 - Не менять Claude/Codex hooks, settings, commands, agents и плагины.
 - Если необходимая информация есть только в Claude/Codex-файле, остановиться и сообщить пользователю.
